@@ -15,18 +15,29 @@ class ItunesConnect::Report
   # Give me an +IO+-like object (one that responds to the +each+
   # method) and I'll parse that sucker for you.
   def initialize(input)
+    
     @data = Hash.new { |h,k| h[k] = { }}
     input.each do |line|
       line.chomp!
       next if line =~ /^(Provider|$)/
-      tokens = line.split(/\s+/)
-      country = tokens[11]
-      count = tokens[6].to_i
-      @data[country][:date] = Date.parse(tokens[8])
-      case tokens[5].to_i
-      when 7
+      if line =~ /DOCTYPE/ # bail if we get unparseable
+        return
+      end
+      tokens = line.split(/\t/)
+      i = 0
+      tokens.each do |token|
+        puts "token #{i}: "+token
+        i = i+1
+      end
+      country = tokens[12]
+      count = tokens[7].to_i
+      @data[country][:app_name] = tokens[4]
+      @data[country][:date] = Date.parse(tokens[9])
+      type = tokens[6]
+      if type.match(/^7/)
         @data[country][:upgrade] = count
-      when 1
+      end
+      if type.match(/^1/)
         @data[country][:install] = count
       end
     end
@@ -44,7 +55,8 @@ class ItunesConnect::Report
         yield OpenStruct.new(:country => country,
                              :date => value[:date],
                              :install_count => value[:install] || 0,
-                             :upgrade_count => value[:upgrade] || 0)
+                             :upgrade_count => value[:upgrade] || 0,
+                             :app_name => value[:app_name])
       end
     end
   end

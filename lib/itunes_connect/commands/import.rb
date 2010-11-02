@@ -20,7 +20,8 @@ module ItunesConnect::Commands
         count += 1 if store.add(entry.date,
                                 entry.country,
                                 entry.install_count,
-                                entry.upgrade_count)
+                                entry.upgrade_count,
+                                entry.app_name)
       end
 
       if opts.verbose?

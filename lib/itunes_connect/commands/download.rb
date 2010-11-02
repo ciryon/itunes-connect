@@ -60,7 +60,8 @@ module ItunesConnect::Commands
           count += 1 if store.add(entry.date,
                                   entry.country,
                                   entry.install_count,
-                                  entry.upgrade_count)
+                                  entry.upgrade_count,
+                                  entry.app_name)
         end
         $stdout.puts "Inserted #{count} rows into #{opts.db}" if opts.verbose?
       end

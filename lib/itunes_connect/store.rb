@@ -13,7 +13,7 @@ module ItunesConnect
         @db.execute("CREATE TABLE reports (id INTEGER PRIMARY KEY, " +
                     "report_date DATE NOT NULL, country TEXT NOT NULL, " +
                     "install_count INTEGER, " +
-                    "update_count INTEGER)")
+                    "update_count INTEGER, app_name TEXT NOT NULL)")
         @db.execute("CREATE UNIQUE INDEX u_reports_idx ON reports " +
                     "(report_date, country)")
       end
@@ -24,11 +24,15 @@ module ItunesConnect
       !!@verbose
     end
 
-    # Add a record to this instance
     def add(date, country, install_count, update_count)
+      self.add date,country,install_count,update_count, "UnknownApp"
+    end
+
+    # Add a record to this instance
+    def add(date, country, install_count, update_count, app_name)
       ret = @db.execute("INSERT INTO reports (report_date, country, " +
-                        "install_count, update_count) VALUES (?, ?, ?, ?)",
-                        [format_date(date), country, install_count, update_count])
+                        "install_count, update_count, app_name) VALUES (?, ?, ?, ?, ?)",
+                        [format_date(date), country, install_count, update_count, app_name])
       true
     rescue SQLite3::ConstraintException => e
       if e.message =~ /columns .* are not unique/
@@ -73,6 +77,7 @@ module ItunesConnect
       sql << " WHERE " unless clauses.empty?
       sql << clauses.join(" AND ") unless params.empty?
       sql << " ORDER BY report_date DESC"
+
 
       @db.execute(sql, params).map do |row|
         OpenStruct.new({
